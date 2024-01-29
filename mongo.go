@@ -3,6 +3,8 @@ package yaya
 import (
 	"context"
 	"fmt"
+	"strings"
+	
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -237,4 +239,149 @@ func GetBoxDoc(db *mongo.Database, collname string, coordinates Polyline) (resul
 		fmt.Printf("Box: %v\n", err)
 	}
 	return "Box anda berada pada " + doc.Properties.Name
+}
+
+func GetCenterDoc(db *mongo.Database, collname string, coordinates Point) (result string) {
+	filter := bson.M{
+		"geometry": bson.M{
+			"$geoWithin": bson.M{
+				"$center": []interface{}{coordinates.Coordinates, 0.003},
+			},
+		},
+	}
+
+	var docs []FullGeoJson
+	cur, err := db.Collection(collname).Find(context.TODO(), filter)
+	if err != nil {
+		fmt.Printf("Box: %v\n", err)
+		return ""
+	}
+
+	defer cur.Close(context.TODO())
+
+	for cur.Next(context.TODO()) {
+		var doc FullGeoJson
+		err := cur.Decode(&doc)
+		if err != nil {
+			fmt.Printf("Decode Err: %v\n", err)
+			continue
+		}
+		docs = append(docs, doc)
+	}
+
+	if err := cur.Err(); err != nil {
+		fmt.Printf("Cursor Err: %v\n", err)
+		return ""
+	}
+
+	// Ambil nilai properti Name dari setiap dokumen
+	var names []string
+	for _, doc := range docs {
+		names = append(names, doc.Properties.Name)
+	}
+
+	// Gabungkan nilai-nilai dengan koma
+	result = strings.Join(names, ", ")
+
+	return result
+}
+
+func GetCenterSphereDoc(db *mongo.Database, collname string, coordinates Point) (result string) {
+	filter := bson.M{
+		"geometry": bson.M{
+			"$geoWithin": bson.M{
+				"$centerSphere": []interface{}{coordinates.Coordinates, 0.00003},
+			},
+		},
+	}
+
+	var docs []FullGeoJson
+	cur, err := db.Collection(collname).Find(context.TODO(), filter)
+	if err != nil {
+		fmt.Printf("Box: %v\n", err)
+		return ""
+	}
+
+	defer cur.Close(context.TODO())
+
+	for cur.Next(context.TODO()) {
+		var doc FullGeoJson
+		err := cur.Decode(&doc)
+		if err != nil {
+			fmt.Printf("Decode Err: %v\n", err)
+			continue
+		}
+		docs = append(docs, doc)
+	}
+
+	if err := cur.Err(); err != nil {
+		fmt.Printf("Cursor Err: %v\n", err)
+		return ""
+	}
+
+	// Ambil nilai properti Name dari setiap dokumen
+	var names []string
+	for _, doc := range docs {
+		names = append(names, doc.Properties.Name)
+	}
+
+	// Gabungkan nilai-nilai dengan koma
+	result = strings.Join(names, ", ")
+
+	return result
+}
+
+// func GetGeometryDoc(db *mongo.Database, collname, tipe string, coordinates .Point) (result string) {
+// 	filter := bson.M{
+// 		"$geometry": bson.M{
+// 			"type":        tipe,
+// 			"coordinates": []interface{}{coordinates},
+// 		},
+// 	}
+// 	var doc .FullGeoJson
+// 	err := db.Collection(collname).FindOne(context.TODO(), filter).Decode(&doc)
+// 	if err != nil {
+// 		fmt.Printf("NearSphere: %v\n", err)
+// 	}
+// 	return doc.Properties.Name
+// }
+
+func GetMaxDistanceDoc(db *mongo.Database, collname string, coordinates Point) (result string) {
+	filter := bson.M{
+		"geometry": bson.M{
+			"$near": bson.M{
+				"$geometry": bson.M{
+					"type":        "Point",
+					"coordinates": coordinates.Coordinates,
+				},
+				"$maxDistance": coordinates.Max,
+			},
+		},
+	}
+	var doc FullGeoJson
+	err := db.Collection(collname).FindOne(context.TODO(), filter).Decode(&doc)
+	if err != nil {
+		fmt.Printf("Near: %v\n", err)
+	}
+	return "Koordinat anda dekat dengan " + doc.Properties.Name
+}
+
+func GetMinDistanceDoc(db *mongo.Database, collname string, coordinates Point) (result string) {
+	filter := bson.M{
+		"geometry": bson.M{
+			"$near": bson.M{
+				"$geometry": bson.M{
+					"type":        "Point",
+					"coordinates": coordinates.Coordinates,
+				},
+				"$minDistance": coordinates.Min,
+			},
+		},
+	}
+	var doc FullGeoJson
+	err := db.Collection(collname).FindOne(context.TODO(), filter).Decode(&doc)
+	if err != nil {
+		fmt.Printf("Near: %v\n", err)
+	}
+	return "Koordinat anda dekat dengan " + doc.Properties.Name
 }

@@ -96,6 +96,8 @@ type GeoJsonPolygon struct {
 
 type Point struct {
 	Coordinates []float64 `json:"coordinates" bson:"coordinates"`
+	Max         int64     `json:"max,omitempty" bson:"max,omitempty"`
+	Min         int64     `json:"min,omitempty" bson:"min,omitempty"`
 }
 
 type Polyline struct {
