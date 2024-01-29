@@ -122,6 +122,22 @@ func Box(mconn *mongo.Database, collname string, coordinates Polyline) string {
 	return GetBoxDoc(mconn, collname, coordinates)
 }
 
+func Center(mconn *mongo.Database, collname string, coordinates Point) string {
+	return GetCenterDoc(mconn, collname, coordinates)
+}
+
+func CenterSphere(mconn *mongo.Database, collname string, coordinates Point) string {
+	return GetCenterSphereDoc(mconn, collname, coordinates)
+}
+
+func MaxDistance(mconn *mongo.Database, collname string, coordinates Point) string {
+	return GetMaxDistanceDoc(mconn, collname, coordinates)
+}
+
+func MinDistance(mconn *mongo.Database, collname string, coordinates Point) string {
+	return GetMinDistanceDoc(mconn, collname, coordinates)
+}
+
 // -------------------------------------------------------------------- Pemrograman --------------------------------------------------------------------
 
 func GetAllKegiatan(mconn *mongo.Database, collname string) []Kegiatan {
