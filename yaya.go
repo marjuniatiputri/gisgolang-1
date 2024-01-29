@@ -1,4 +1,4 @@
-package befous
+package yaya
 
 import (
 	"encoding/json"
@@ -440,7 +440,7 @@ func AmbilDataGeojson(mongoenv, dbname, collname string, r *http.Request) string
 	return ReturnStruct(datagedung)
 }
 
-func PostGeoIntersects(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+func PostGeoIntersects(mongoenv, dbname, collname string, r *http.Request) string {
 	var coordinate Point
 	var response Pesan
 	response.Status = false
@@ -453,38 +453,13 @@ func PostGeoIntersects(publickey, mongoenv, dbname, collname string, r *http.Req
 		return ReturnStruct(response)
 	}
 
-	header := r.Header.Get("token")
-	if header == "" {
-		response.Message = "Header login tidak ditemukan"
-		return ReturnStruct(response)
-	}
-
-	tokenusername := DecodeGetUsername(os.Getenv(publickey), header)
-	tokenrole := DecodeGetRole(os.Getenv(publickey), header)
-
-	if tokenusername == "" || tokenrole == "" {
-		response.Message = "Hasil decode tidak ditemukan"
-		return ReturnStruct(response)
-	}
-
-	if !UsernameExists(mconn, collname, User{Username: tokenusername}) {
-		response.Message = "Akun tidak ditemukan"
-		return ReturnStruct(response)
-	}
-
-	if tokenrole != "owner" {
-		if tokenrole != "dosen" {
-			response.Message = "Anda tidak memiliki akses"
-			return ReturnStruct(response)
-		}
-	}
-
 	response.Status = true
 	response.Message = GeoIntersects(mconn, collname, coordinate)
+
 	return ReturnStruct(response)
 }
 
-func PostGeoWithin(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+func PostGeoWithin(mongoenv, dbname, collname string, r *http.Request) string {
 	var coordinate Polygon
 	var response Pesan
 	response.Status = false
@@ -497,39 +472,13 @@ func PostGeoWithin(publickey, mongoenv, dbname, collname string, r *http.Request
 		return ReturnStruct(response)
 	}
 
-	header := r.Header.Get("token")
-	if header == "" {
-		response.Message = "Header login tidak ditemukan"
-		return ReturnStruct(response)
-	}
-
-	tokenusername := DecodeGetUsername(os.Getenv(publickey), header)
-	tokenrole := DecodeGetRole(os.Getenv(publickey), header)
-
-	if tokenusername == "" || tokenrole == "" {
-		response.Message = "Hasil decode tidak ditemukan"
-		return ReturnStruct(response)
-	}
-
-	if !UsernameExists(mconn, collname, User{Username: tokenusername}) {
-		response.Message = "Akun tidak ditemukan"
-		return ReturnStruct(response)
-	}
-
-	if tokenrole != "owner" {
-		if tokenrole != "dosen" {
-			response.Message = "Anda tidak memiliki akses"
-			return ReturnStruct(response)
-		}
-	}
-
 	response.Status = true
 	response.Message = GeoWithin(mconn, collname, coordinate)
 
 	return ReturnStruct(response)
 }
 
-func PostNear(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+func PostNear(mongoenv, dbname, collname string, r *http.Request) string {
 	var coordinate Point
 	var response Pesan
 	response.Status = false
@@ -542,38 +491,49 @@ func PostNear(publickey, mongoenv, dbname, collname string, r *http.Request) str
 		return ReturnStruct(response)
 	}
 
-	header := r.Header.Get("token")
-	if header == "" {
-		response.Message = "Header login tidak ditemukan"
-		return ReturnStruct(response)
-	}
-
-	tokenusername := DecodeGetUsername(os.Getenv(publickey), header)
-	tokenrole := DecodeGetRole(os.Getenv(publickey), header)
-
-	if tokenusername == "" || tokenrole == "" {
-		response.Message = "Hasil decode tidak ditemukan"
-		return ReturnStruct(response)
-	}
-
-	if !UsernameExists(mconn, collname, User{Username: tokenusername}) {
-		response.Message = "Akun tidak ditemukan"
-		return ReturnStruct(response)
-	}
-
-	if tokenrole != "owner" {
-		if tokenrole != "dosen" {
-			response.Message = "Anda tidak memiliki akses"
-			return ReturnStruct(response)
-		}
-	}
-
 	response.Status = true
 	response.Message = Near(mconn, collname, coordinate)
 
 	return ReturnStruct(response)
 }
 
+func PostNearSphere(mongoenv, dbname, collname string, r *http.Request) string {
+	var coordinate Point
+	var response Pesan
+	response.Status = false
+	mconn := SetConnection2dsphere(mongoenv, dbname, collname)
+
+	err := json.NewDecoder(r.Body).Decode(&coordinate)
+
+	if err != nil {
+		response.Message = "Error parsing application/json: " + err.Error()
+		return ReturnStruct(response)
+	}
+
+	response.Status = true
+	response.Message = NearSphere(mconn, collname, coordinate)
+
+	return ReturnStruct(response)
+}
+
+func PostBox(mongoenv, dbname, collname string, r *http.Request) string {
+	var coordinate Polyline
+	var response Pesan
+	response.Status = false
+	mconn := SetConnection2dsphere(mongoenv, dbname, collname)
+
+	err := json.NewDecoder(r.Body).Decode(&coordinate)
+
+	if err != nil {
+		response.Message = "Error parsing application/json: " + err.Error()
+		return ReturnStruct(response)
+	}
+
+	response.Status = true
+	response.Message = Box(mconn, collname, coordinate)
+
+	return ReturnStruct(response)
+}
 // -------------------------------------------------------------------- Pemrograman --------------------------------------------------------------------
 
 func AmbilDataKegiatan(mongoenv, dbname, collname string) string {
