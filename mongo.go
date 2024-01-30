@@ -176,12 +176,40 @@ func GetGeoWithinDoc(db *mongo.Database, collname string, coordinates Polygon) (
 			},
 		},
 	}
-	var doc FullGeoJson
-	err := db.Collection(collname).FindOne(context.TODO(), filter).Decode(&doc)
+	var docs []FullGeoJson
+	cur, err := db.Collection(collname).Find(context.TODO(), filter)
 	if err != nil {
-		fmt.Printf("GeoWithin: %v\n", err)
+		fmt.Printf("Box: %v\n", err)
+		return ""
 	}
-	return "Koordinat anda berada di " + doc.Properties.Name
+
+	defer cur.Close(context.TODO())
+
+	for cur.Next(context.TODO()) {
+		var doc FullGeoJson
+		err := cur.Decode(&doc)
+		if err != nil {
+			fmt.Printf("Decode Err: %v\n", err)
+			continue
+		}
+		docs = append(docs, doc)
+	}
+
+	if err := cur.Err(); err != nil {
+		fmt.Printf("Cursor Err: %v\n", err)
+		return ""
+	}
+
+	// Ambil nilai properti Name dari setiap dokumen
+	var names []string
+	for _, doc := range docs {
+		names = append(names, doc.Properties.Name)
+	}
+
+	// Gabungkan nilai-nilai dengan koma
+	result = strings.Join(names, ", ")
+
+	return result
 }
 
 func GetNearDoc(db *mongo.Database, collname string, coordinates Point) (result string) {
@@ -262,12 +290,40 @@ func GetBoxDoc(db *mongo.Database, collname string, coordinates Polyline) (resul
 			},
 		},
 	}
-	var doc FullGeoJson
-	err := db.Collection(collname).FindOne(context.TODO(), filter).Decode(&doc)
+	var docs []FullGeoJson
+	cur, err := db.Collection(collname).Find(context.TODO(), filter)
 	if err != nil {
 		fmt.Printf("Box: %v\n", err)
+		return ""
 	}
-	return "Box anda berada pada " + doc.Properties.Name
+
+	defer cur.Close(context.TODO())
+
+	for cur.Next(context.TODO()) {
+		var doc FullGeoJson
+		err := cur.Decode(&doc)
+		if err != nil {
+			fmt.Printf("Decode Err: %v\n", err)
+			continue
+		}
+		docs = append(docs, doc)
+	}
+
+	if err := cur.Err(); err != nil {
+		fmt.Printf("Cursor Err: %v\n", err)
+		return ""
+	}
+
+	// Ambil nilai properti Name dari setiap dokumen
+	var names []string
+	for _, doc := range docs {
+		names = append(names, doc.Properties.Name)
+	}
+
+	// Gabungkan nilai-nilai dengan koma
+	result = strings.Join(names, ", ")
+
+	return result
 }
 
 func GetCenterDoc(db *mongo.Database, collname string, coordinates Point) (result string) {
