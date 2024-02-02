@@ -1,4 +1,4 @@
-module github.com/marjuniatiputri/gisgolang.git
+module github.com/marjuniatiputri/gisgolang
 
 go 1.20
 
