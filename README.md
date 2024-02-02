@@ -1,4 +1,4 @@
 # Awrl
-Nama	= Aulia Maharani <br />
-NPM		= 1214079 <br />
-Kelas	= 3C <br />
+Nama	= Marjuniati Putri<br />
+NPM		= 1214001 <br />
+Kelas	= 3A <br />
